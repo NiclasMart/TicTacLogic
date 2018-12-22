@@ -5,6 +5,7 @@ Start 02.12.2018*/
 #include <stdlib.h>
 #include "Headerdatei/DauEingaben.h"
 #include "Headerdatei/vektor.h"
+#include <windows.h>
 
 
 
@@ -22,6 +23,9 @@ void save_game(char arr[10][10], int *anz);
 void set_check(char* check, int choice, char mode);
 void options();
 void delete_game();
+void game(char arr[10][10]);
+void gotoXY(int x, int y);
+int getKey(int* x, int* y, int xmin, int ymin);
 
 
 int main() {
@@ -131,6 +135,7 @@ void new_game() {
 
 		//Level initialisieren und Level anzeigen mit Frage ob es wirklich gespielt werden soll
 		set_array(arr, choice, &anz);
+		game(arr);
 		print_field(arr);
 		printf("\nM\224chtest du dieses level spielen?\n\nJ - Ja\nN - Nein\n\n");
 	} while (eingabe_char(">>>", "JN", 5) == 'N');
@@ -140,7 +145,7 @@ void new_game() {
 	if (eingabe_char(">>>", "JN", 5) == 'J')
 		display_rules();
 
-	//game()
+	game(arr);
 
 	//Speichern des Spielestandes mittels der Funktion save_game
 	save_game(arr, &anz);
@@ -520,5 +525,87 @@ void save_game(char arr[10][10], int *anz) {
 	printf("\nSpielstand erfolgreich gespeichert. Kehre zur\201ck zum Hauptmen\201!");
 
 }
+
+
+//Spiel Funktion
+void game(char arr[10][10]) {
+	const int x0 = 12, y0 = 6;
+	int x = x0, y = y0;
+	system("cls");
+	printf("\n  Bewege den Cursor mit den Pfeiltasten und geben sie im gewünschten Feld 'x' oder 'o' den Regeln entsprechend ein!\n");
+	print_field(arr);
+
+	while (1) {
+		do {
+			gotoXY(x, y);
+		} while (getKey(&x, &y, x0, y0));
+
 		
+	}
+
+}
+
+
+//Cursor bewegen
+void gotoXY(int x, int y) {
+	HANDLE  hConsoleOutput; COORD koords;
+	koords.X = x; koords.Y = y;
+	hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(hConsoleOutput, koords);
+}
+
+
+//erkennt welche Taste auf der Tastatur gedrückt wurde
+int getKey(int* x, int* y, int xmin, int ymin) {
+
+
+	//liest einen charakter ohne Enter in result ein und überprüft ob es sich um eine Pfeiltaste handelt
+	//wenn ja werden die x und y Koordinaten entsprechend aktualisiert
+	int result = getch();
+	if ((result == 224) || (result == 0)) {
+		switch (getch()) {
+
+		//rechts
+		case 77: {
+			if (*x < xmin + 36)
+				*x += 4;
+			return 1;
+		}
+				 break;
+
+		 //links
+		case 75: {
+			if (*x > xmin)
+				*x -= 4;
+			return 1;
+		}
+				 break;
+
+		//oben
+		case 72: {
+			if (*y > ymin)
+				*y -= 2;
+			return 1;
+		}
+				 break;
+
+		//unten
+		case 80: {
+			if (*y < ymin + 18)
+				*y += 2;
+			return 1;
+		}
+				 break;
+		return 1;
+
+		}
+	}
+	else if ((result == 'x') || (result == 'o')) {
+		//prüfen()
+		//setin_arr()
+
+		printf("%c", result);
+		return 1;
+	}
+}
 
