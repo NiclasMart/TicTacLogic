@@ -25,7 +25,9 @@ void options();
 void delete_game();
 void game(char arr[10][10]);
 void gotoXY(int x, int y);
-int getKey(int* x, int* y, int xmin, int ymin);
+int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol);
+int funktion1(int x);
+int funktion2(int x);
 
 
 int main() {
@@ -529,17 +531,32 @@ void save_game(char arr[10][10], int *anz) {
 
 //Spiel Funktion
 void game(char arr[10][10]) {
-	const int x0 = 12, y0 = 6;
-	int x = x0, y = y0;
+
+	//Koordinaten für das Spielfeld + Bildschirm clear
+	int x_field = 12, y_field = 6;
+
+	
 	system("cls");
 	printf("\n  Bewege den Cursor mit den Pfeiltasten und geben sie im gewünschten Feld 'x' oder 'o' den Regeln entsprechend ein!\n");
 	print_field(arr);
 
+	//Funktion um Cursor zu bewegen und Symbole einzugeben
+	char symbol;
 	while (1) {
 		do {
-			gotoXY(x, y);
-		} while (getKey(&x, &y, x0, y0));
+			gotoXY(x_field, y_field);
+		} while (getKey(arr, &x_field, &y_field, &symbol));
 
+		//umrechnen der angepassten x und y Werte des Spielfeldes auf die tatsächlichen Indexfelder der Matrix
+		int x_matrix = (x_field - 12) / 4, y_matrix = (y_field - 6) / 2;
+
+		if (arr[y_matrix][x_matrix] == ' ') {
+			if (rule_check(arr, x_field, y_field, x_matrix, y_matrix, symbol)) {
+				printf("%c", symbol);
+				/*complete_check(arr, x_matrix, y_matrix);*/
+			}
+
+		}
 		
 	}
 
@@ -556,43 +573,43 @@ void gotoXY(int x, int y) {
 
 
 //erkennt welche Taste auf der Tastatur gedrückt wurde
-int getKey(int* x, int* y, int xmin, int ymin) {
+int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol) {
 
-
-	//liest einen charakter ohne Enter in result ein und überprüft ob es sich um eine Pfeiltaste handelt
-	//wenn ja werden die x und y Koordinaten entsprechend aktualisiert
+	//liest einen charakter ohne Enter in result ein und überprüft ob es sich um eine Pfeiltaste oder die Eingabe eines 'x' oder 'o' handelt
+	//wenn Pfeiltaste werden die x und y Koordinaten entsprechend aktualisiert
+	//wenn 'x' oder 'o' werden Regeln überprüft und in Array geschrieben
 	int result = getch();
 	if ((result == 224) || (result == 0)) {
 		switch (getch()) {
 
-		//rechts
+		//rechte Pfeiltaste mit Überprüfung ob Cursor bereits am rechtem Rand des Spielfeldes (48)
 		case 77: {
-			if (*x < xmin + 36)
-				*x += 4;
+			if (*x_field < 48)
+				*x_field += 4;
 			return 1;
 		}
 				 break;
 
-		 //links
+		//linke Pfeiltaste mit Überprüfung ob Cursor bereits am linken Rand des Spielfeldes (12)
 		case 75: {
-			if (*x > xmin)
-				*x -= 4;
+			if (*x_field > 12)
+				*x_field -= 4;
 			return 1;
 		}
 				 break;
 
-		//oben
+		//oben Pfeiltaste mit Überprüfung ob Cursor bereits am oberen Rand des Spielfeldes (6)
 		case 72: {
-			if (*y > ymin)
-				*y -= 2;
+			if (*y_field > 6)
+				*y_field -= 2;
 			return 1;
 		}
 				 break;
 
-		//unten
+		//unten Pfeiltaste mit Überprüfung ob Cursor bereits am unteren Rand des Spielfeldes (24)
 		case 80: {
-			if (*y < ymin + 18)
-				*y += 2;
+			if (*y_field < 24)
+				*y_field += 2;
 			return 1;
 		}
 				 break;
@@ -600,12 +617,113 @@ int getKey(int* x, int* y, int xmin, int ymin) {
 
 		}
 	}
+	//Eingabe von x oder o mit Regelprüfung
 	else if ((result == 'x') || (result == 'o')) {
-		//prüfen()
-		//setin_arr()
 
-		printf("%c", result);
-		return 1;
+		*symbol = result;
+		return 0;
 	}
+		
+	return 1;
 }
 
+
+
+//überprüft ob die Eingabe allen Regeln entspricht
+int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_matrix, char symbol) {
+
+
+	//Element in den Array einfügen
+	arr[y_matrix][x_matrix] = symbol;
+
+	//Umfeld kontrollieren 
+	//Zeile
+	int counter = 0;
+
+
+	for (int i = x_matrix - funktion1(x_matrix); i <= x_matrix + funktion2(x_matrix); i++) {
+		if (arr[y_matrix][i] == symbol) counter++;
+		else counter = 0;
+
+		if (counter > 2) {
+			arr[y_matrix][x_matrix] = ' ';
+			gotoXY(1, 27);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Maximal zweimal das selbe Zeichen nacheinander auf einer Zeile", symbol);
+			gotoXY(x_field, y_field);
+			return 0;
+		}
+
+	}
+
+	//Spalte
+	counter = 0;
+	for (int i = y_matrix - funktion1(y_matrix); i <= y_matrix + funktion2(y_matrix); i++) {
+		if (arr[i][x_matrix] == symbol) counter++;
+		else counter = 0;
+
+		if (counter > 2) {
+			arr[y_matrix][x_matrix] = ' ';
+			gotoXY(1, 27);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Maximal zweimal das selbe Zeichen nacheinander in einer Spalte", symbol);
+			gotoXY(x_field, y_field);
+			return 0;
+		}
+
+	}
+
+	//Zeilen/Spalten kontrollieren
+	//Zeile
+	counter = 0;
+	for (int i = 0; i < 10; i++) {
+		if (arr[y_matrix][i] == symbol) counter++;
+
+		if (counter > 5) {
+			arr[y_matrix][x_matrix] = ' ';
+			gotoXY(1, 27);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n In jeder Zeile m\201ssen gleich viele 'x' und 'o' stehen.", symbol);
+			gotoXY(x_field, y_field);
+			return 0;
+		}
+		
+	}
+
+	//Spalte
+	//Zeile
+	counter = 0;
+	for (int i = 0; i < 10; i++) {
+		if (arr[i][x_matrix] == symbol) counter++;
+
+		if (counter > 5) {
+			arr[y_matrix][x_matrix] = ' ';
+			gotoXY(1, 27);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n In jeder Spalte m\201ssen gleich viele 'x' und 'o' stehen.", symbol);
+			gotoXY(x_field, y_field);
+			return 0;
+		}
+
+	}
+	return 1;
+}
+
+
+//void complete_check(char arr[10][10], int x_matrix, int y_matrix) {
+//
+//	int count = 0;
+//	// überprüfen ob Zeile komplett ist
+//	for (int i = 0; i < 10; i++) {
+//		if (arr[y_matrix][i] != ' ') count++;
+//	}
+//	if (count == 10) struct Zeile[]
+//}
+
+int funktion1(int x) {
+	                                                      
+	if (x >= 2) return 2;
+	else return x;
+}    
+
+int funktion2(int x) {
+
+	if (x <= 7) return 2;
+	else return -x+9;
+}
