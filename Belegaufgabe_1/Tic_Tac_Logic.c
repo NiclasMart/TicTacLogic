@@ -23,11 +23,14 @@ void save_game(char arr[10][10], int *anz);
 void set_check(char* check, int choice, char mode);
 void options();
 void delete_game();
-void game(char arr[10][10]);
+int game(char arr[10][10], int* anz);
 void gotoXY(int x, int y);
 int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol);
 int funktion1(int x);
 int funktion2(int x);
+int duplicatec_check(char arr[10][10], int* duplicate, int column);
+int duplicater_check(char arr[10][10], int* duplicate, int row);
+void complete_check(char arr[10][10], int* tempr, int* tempc, int x_matrix, int y_matrix);
 
 
 int main() {
@@ -81,7 +84,7 @@ void load_game() {
 		display_savegames(check);
 		printf("0 - Zum Hauptmen\201 zur\201ck kehren!\n\n");
 
-		//Auswahl des Spielers und return falls Rückkehr zum Hauptmenü (0) ausgewählt worde
+		//Auswahl des Spielers und return falls Rückkehr zum Hauptmenü (0) ausgewählt wurde
 		int choice = eingabe_int(">>>", 0, 3, 5);
 		if (choice == 0) return;
 
@@ -103,19 +106,25 @@ void load_game() {
 
 		//Anzeigen des Spielfeldes und fragen, ob mit diesem Spielstand gespielt werden soll
 		print_field(arr);
-		printf("\nMöchtest du mit diesem Spielstand fortfahren ?\n\nJ - Ja\nN - Nein\n\n");
+		printf("\nM\224chtest du mit diesem Spielstand fortfahren ?\n\nJ - Ja\nN - Nein\n\n");
 		if (eingabe_char(">>>", "JN", 5) == 'N')
 			continue;
 		else break;
 	}
 	//Frage ob Spielregeln angezeigt werden sollen
-	printf("\nMöchten sie die Spielregeln sehen ?\nJ - Ja\nN - Nein\n\n");
+	printf("\nM\224chtest die die Spielregeln sehen ?\n\nJ - Ja\nN - Nein\n\n");
 	if (eingabe_char(">>>", "JN", 5) == 'J')
 		display_rules();
+	
 
-	//game()
+	//bei return Value 1 wäre Spiel gewonnen oder verloren (kein Speichern nötig)
+	if (game(arr, &anz) != 1) return;
 
+	gotoXY(1, 27);
+	printf("                                                                                       \n                                                                       ");
+	gotoXY(1, 27);
 	save_game(arr, &anz);
+	return;
 
 
 }
@@ -123,6 +132,7 @@ void load_game() {
 
 //Läd ein völlig neues Spiel ohne gespeicherte Spieldaten
 void new_game() {
+	//initialisieren der matrix, der Anzahl der gefüllten Felder 
 	char arr[10][10];
 	int anz;
 
@@ -137,19 +147,24 @@ void new_game() {
 
 		//Level initialisieren und Level anzeigen mit Frage ob es wirklich gespielt werden soll
 		set_array(arr, choice, &anz);
-		game(arr);
 		print_field(arr);
 		printf("\nM\224chtest du dieses level spielen?\n\nJ - Ja\nN - Nein\n\n");
 	} while (eingabe_char(">>>", "JN", 5) == 'N');
 
 	//Frage ob Spielregeln angezeigt werden sollen
-	printf("\nM\224chten sie die Spielregeln sehen ?\n\nJ - Ja\nN - Nein\n\n");
-	if (eingabe_char(">>>", "JN", 5) == 'J')
+	printf("\nM\224chtest du die Spielregeln sehen ?\n\nJ - Ja\nN - Nein\n\n");
+	if (eingabe_char(">>>", "JN", 5) == 'J') 
 		display_rules();
 
-	game(arr);
+
+	//bei return Value 1 wäre Spiel gewonnen oder verloren (kein Speichern nötig)
+	if (game(arr, &anz) != 1) return;
+	
 
 	//Speichern des Spielestandes mittels der Funktion save_game
+	gotoXY(1, 27);
+	printf("                                                                                       \n                                                                       ");
+	gotoXY(1, 27);
 	save_game(arr, &anz);
 	return;
 }
@@ -233,7 +248,46 @@ void set_array(char arr[10][10], int choice, int* anz) {
 	
 	switch (choice) {
 		case 1: {
-			arr[0][2] = 'o';
+			arr[0][0] = 'o';
+			arr[0][1] = 'o';
+			arr[0][4] = 'o';
+			arr[0][5] = 'o';
+			arr[0][8] = 'o';
+			arr[0][9] = 'x';
+			arr[0][2] = 'x';
+			arr[0][3] = 'x';
+			arr[0][6] = 'x';
+			arr[0][7] = 'x';
+			arr[1][0] = 'o';
+			arr[1][1] = 'o';
+			arr[1][4] = 'o';
+			arr[1][5] = 'o';
+			arr[1][8] = 'o';
+			arr[1][9] = 'x';
+			arr[1][2] = 'x';
+			arr[1][3] = 'x';
+			arr[1][6] = 'x';
+			arr[1][7] = 'x';
+			arr[2][0] = 'x';
+			arr[3][0] = 'x';
+			arr[4][0] = 'o';
+			arr[5][0] = 'o';
+			arr[6][0] = 'x';
+			arr[7][0] = 'x';
+			arr[8][0] = 'o';
+			arr[2][1] = 'x';
+			arr[3][1] = 'x';
+			arr[4][1] = 'o';
+			arr[5][1] = 'o';
+			arr[6][1] = 'x';
+			arr[7][1] = 'x';
+			arr[8][1] = 'o';
+			arr[9][1] = 'x';
+			arr[9][0] = 'x';
+			
+			*anz = 36;
+			
+			/*arr[0][2] = 'o';
 			arr[0][3] = 'x';
 			arr[0][9] = 'o';
 			arr[1][0] = 'x';
@@ -259,7 +313,7 @@ void set_array(char arr[10][10], int choice, int* anz) {
 			arr[9][6] = 'o';
 			arr[9][8] = 'x';
 			arr[9][9] = 'o';
-			*anz = 26;
+			*anz = 26;*/
 		}
 			break;
 		case 2: {
@@ -348,10 +402,12 @@ void print_field(char arr[10][10]) {
 
 //Gibt die Regeln des Spiels aus
 void display_rules() {
-	printf("\n\n\n\nAnleitung und Regelwerk zu \"Tic-Tac-Logic\"\n-------------------------------------------\n\nIm Spiel geht es darum, die komplette Tabelle mit 'o' und 'x' zu f\201llen.");
-	printf("\nDamit dies nicht zu einfach ist, gibt es nat\201rlich ein paar Regeln zu beachten.\n\n     1. Es d\201rfen nicht mehr als 2 aufeinander folgende 'x' oder 'o' in einer Zeile\n        oder Spalte vorkommen.\n\n");
-	printf("     2. In jeder Zeile oder Spalte stehen gleich viele 'x' und 'o'.\n\n     3. Alle Zeilen und alle Spalten sind einzigartig.\n\nUm in ein freies Feld zu schreiben, musst du zuerst die koordinaten dieses Feldes angeben.\n");
-	printf("Dies tust du, indem du zuerst die Zeilennummer und dann die Spaltennummer angibst.\nDanach kannst du ein 'x' oder ein 'o' eingeben. Es wird \201berpr\201ft ob die Eingabe allen\nRegeln entspricht und zum Schluss kannst du deine Eingabe nocheinmal best\204tigen.\nGewonnen hast du, wenn die Tabelle unter beachtung aller Regeln gef\201llt ist\nViel Spa\xE1 und Erfolg beim Spielen :)\n\n\n\n");
+	system("cls");
+	printf("\nAnleitung und Regelwerk zu \"Tic-Tac-Logic\"\n-------------------------------------------\n\nIm Spiel geht es darum, die komplette Tabelle mit 'o' und 'x' zu f\201llen.");
+	printf("\nDamit dies nicht zu einfach ist, gibt es nat\201rlich ein paar Regeln zu beachten.\n\n\n     1. Es d\201rfen nicht mehr als 2 aufeinander folgende 'x' oder 'o' in einer Zeile\n        oder Spalte vorkommen.\n\n");
+	printf("     2. In jeder Zeile oder Spalte stehen gleich viele 'x' und 'o'.\n\n     3. Alle Zeilen und alle Spalten sind einzigartig.\n\n\nUm in ein freies Feld zu schreiben, bewege den Cursor mit den Pfeiltasten an die gew\201nschte Position.\n");
+	printf("Danach kannst du ein 'x' oder ein 'o' eingeben. Es wird \201berpr\201ft ob die Eingabe allen Regeln entspricht.\nGewonnen hast du, wenn die Tabelle unter Beachtung aller Regeln gef\201llt ist.\nViel Spa\xE1 und Erfolg beim Spielen :)\n\n\n\n");
+	system("PAUSE");
 }
 
 
@@ -414,7 +470,7 @@ void load_arr(char arr[10][10], char* name, int* anz) {
 		exit(1);
 	}
 
-	//Laden der Anzahl (Anzahl entspricht der Anzahl der nicht mit '0' initialisierten Felder)
+	//Laden der Anzahl (Anzahl entspricht der Anzahl der nicht mit ' ' initialisierten Felder)
 	if (fscanf(fp, "%d ", anz) != 1) {
 		printf("\nFehler Datei Inhalt konnte nicht richtig geladen werden!\n");
 		exit(1);
@@ -530,30 +586,51 @@ void save_game(char arr[10][10], int *anz) {
 
 
 //Spiel Funktion
-void game(char arr[10][10]) {
+int game(char arr[10][10], int* anz) {
 
-	//Koordinaten für das Spielfeld + Bildschirm clear
-	int x_field = 12, y_field = 6;
+	//Koordinaten für das Spielfeld und Speichervektoren für vollständige Zeilen/Spalten (20 dient als Leerfeld, also noch keine Initialisiereung)
+	int x_field = 12, y_field = 6, complete_row[10] = { 20, 20, 20, 20 , 20, 20, 20, 20, 20, 20 }, complete_column[10] = { 20, 20, 20, 20 , 20, 20, 20, 20, 20, 20 };
 
-	
+	//Matrix muss auf vollständige Zeilen/Spalten vor Spielbeginn überprüft werden, damit 3. Regel auch für Spielstände aus Datein funktioniert
+	for (int i = 0; i < 10; i++) {
+		complete_check(arr, &complete_row[i], &complete_column[i], i, i);
+	}
+
+	//Bildschirm clear + Spielfeldausgabe
 	system("cls");
-	printf("\n  Bewege den Cursor mit den Pfeiltasten und geben sie im gewünschten Feld 'x' oder 'o' den Regeln entsprechend ein!\n");
+	printf("\n  Bewege den Cursor mit den Pfeiltasten und geben sie im gew\201nschten Feld 'x' oder 'o' den Regeln entsprechend ein!\n");
 	print_field(arr);
 
 	//Funktion um Cursor zu bewegen und Symbole einzugeben
 	char symbol;
+	int test;
 	while (1) {
 		do {
 			gotoXY(x_field, y_field);
 		} while (getKey(arr, &x_field, &y_field, &symbol));
 
+		//Spiel verlassen
+		if (symbol == 27) return 1;
+
 		//umrechnen der angepassten x und y Werte des Spielfeldes auf die tatsächlichen Indexfelder der Matrix
 		int x_matrix = (x_field - 12) / 4, y_matrix = (y_field - 6) / 2;
 
+		//überprüfen des eingegebenen Zeichens auf Regelverstoß
 		if (arr[y_matrix][x_matrix] == ' ') {
-			if (rule_check(arr, x_field, y_field, x_matrix, y_matrix, symbol)) {
+			if (rule_check(arr, x_field, y_field, x_matrix, y_matrix, symbol, complete_row, complete_column)) {
+				(*anz)++;
 				printf("%c", symbol);
-				/*complete_check(arr, x_matrix, y_matrix);*/
+				//Testen ob Matrix komplett gefüllt und das Spiel damit gewonnen (nur Test von einem Vektor nötig, da wenn alle Zeilen gefüllt sind, automatisch auch alle Spalten gefüllt sein müssen
+				int count = 0;
+				for (int i = 0; i < 10; i++) {
+					if (complete_row[i] == 20) break;
+					if (complete_row[9] !=20){
+						gotoXY(1, 27);
+						printf("Herzlichen gl\201ckwunsch! Du hast Gewonnen und das Level erfolgreich geschafft.\n Drücke eine Taste um zurück zum Hauptmenü zu gelangen.                        ");
+						system("PAUSE");
+						return 0;
+					}
+				}
 			}
 
 		}
@@ -581,7 +658,7 @@ int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol) {
 	int result = getch();
 	if ((result == 224) || (result == 0)) {
 		switch (getch()) {
-
+			
 		//rechte Pfeiltaste mit Überprüfung ob Cursor bereits am rechtem Rand des Spielfeldes (48)
 		case 77: {
 			if (*x_field < 48)
@@ -618,7 +695,7 @@ int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol) {
 		}
 	}
 	//Eingabe von x oder o mit Regelprüfung
-	else if ((result == 'x') || (result == 'o')) {
+	else if ((result == 'x') || (result == 'o') || (result == 27)) {
 
 		*symbol = result;
 		return 0;
@@ -628,15 +705,14 @@ int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol) {
 }
 
 
-
 //überprüft ob die Eingabe allen Regeln entspricht
-int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_matrix, char symbol) {
+int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_matrix, char symbol, int* complete_row, int* complete_column) {
 
 
 	//Element in den Array einfügen
 	arr[y_matrix][x_matrix] = symbol;
 
-	//Umfeld kontrollieren 
+	//Regel 1: Umfeld kontrollieren
 	//Zeile
 	int counter = 0;
 
@@ -671,7 +747,7 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 
 	}
 
-	//Zeilen/Spalten kontrollieren
+	//Regel 2: Zeilen/Spalten kontrollieren 
 	//Zeile
 	counter = 0;
 	for (int i = 0; i < 10; i++) {
@@ -688,7 +764,6 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 	}
 
 	//Spalte
-	//Zeile
 	counter = 0;
 	for (int i = 0; i < 10; i++) {
 		if (arr[i][x_matrix] == symbol) counter++;
@@ -702,28 +777,162 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 		}
 
 	}
+
+
+	//Regel 3: Matrix kontrollieren
+
+	//initialisieren der Speichervektoren (20 dient als Leerfeld, also noch keine Initialisiereung) und der temporären Speicherplätze
+	static 
+	int tempr, tempc;
+	tempr = 20;
+	tempc = 20;
+
+	//check ob Zeile/Spalte komplett, wenn ja wird die entsprechende Zeile/Spalte auf den temporären Variablen ausgegeben
+	complete_check(arr, &tempr, &tempc, x_matrix, y_matrix);
+
+	//wenn Zeile komplett ist (also tempr != 20) wird sie mit allen zuvor fertig gestellten Zeilen in der Funktion duplicate_check verglichen
+	//wenn wenn kein Duplicat vorliegt wird die tempr in den Vektor geschrieben 
+	static int placer = 0, placec = 0;
+	if (tempr != 20) {
+		if (duplicater_check(arr, complete_row, tempr) == 1) {
+			arr[y_matrix][x_matrix] = ' ';
+			gotoXY(1, 27);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Zeilen m\201ssen einzigartig sein!", symbol);
+			gotoXY(x_field, y_field);
+			return 0;
+		}
+		else {
+			complete_row[placer] = y_matrix;
+			placer++;
+		}
+	}
+
+	//Spalte auf Duplicate überprüfen ... gleiches Vorgehen wie bei Zeile
+	if (tempc != 20) {
+		if (duplicatec_check(arr, complete_column, tempc) == 1) {
+			arr[y_matrix][x_matrix] = ' ';
+			gotoXY(1, 27);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Spalten m\201ssen einzigartig sein!", symbol);
+			gotoXY(x_field, y_field);
+			//wenn Zeile komplett und einzigartig aber Spalte Duplicate, wird Symbol nicht in Matrix übertragen und Zeile ist somit nicht komplett (muss wieder aus dem Merkvektor entfernt werden)
+			if (tempr != 20) complete_column[placer] = 20;
+			return 0;
+		}
+		else {
+			complete_column[placec] = x_matrix;
+			placec++;
+		}
+	}
 	return 1;
 }
 
 
-//void complete_check(char arr[10][10], int x_matrix, int y_matrix) {
+//kontrolliert nach jedem eingegebenen Feld ob die Reihe/Spalte mit der Eingabe komplett ist
+void complete_check(char arr[10][10], int* tempr, int* tempc, int x_matrix, int y_matrix) {
+
+		int count = 0;
+		// überprüfen ob Zeile komplett ist
+			for (int i = 0; i < 10; i++) {
+				if (arr[y_matrix][i] != ' ') count++;
+			}
+		//wenn Zeile Komplett, wird der index auf tempr gemerkt
+		if (count == 10) {
+			*tempr = y_matrix;
+		}
+
+		//überprüfen ob Spalte komplett ist
+		count = 0;
+		for (int i = 0; i < 10; i++) {
+			if (arr[i][x_matrix] != ' ') count++;
+		}
+		//wenn wenn Spalte Komplett, wird der index auf tempc gemerkt
+		if (count == 10) {
+			*tempc = x_matrix;
+		}
+}
+
+
+//Vergleicht eine soeben fertig gestellte Reihe mit allen bereits zuvor fertig gestellten Reihen und überprüft, ob sie einzigartig ist (kein Duplikat)
+int duplicater_check(char arr[10][10], int* duplicate, int row) {
+
+	//Duplicatprüfung für Zeilen
+	int count;
+		for (int i = 0; i < 10; i++) {
+			if (duplicate[i] == 20) return 0;
+			count = 0;
+			for (int j = 0; j < 10; j++) {
+				if (arr[duplicate[i]][j] == arr[row][j]) count++;
+
+			}
+			if (count == 10) return 1;
+		}
+	
+}
+
+
+//Vergleicht eine soeben fertig gestellte Spalte mit allen bereits zuvor fertig gestellten Spalten und überprüft, ob sie einzigartig ist (kein Duplikat)
+int duplicatec_check(char arr[10][10], int* duplicate, int column) {
+
+	//Duplicatprüfung für Spalte
+	int count;
+	for (int i = 0; i < 10; i++) {
+		if (duplicate[i] == 20) return 0;
+		count = 0;
+		for (int j = 0; j < 10; j++) {
+			if (arr[j][duplicate[i]] == arr[j][column]) count++;
+
+		}
+		if (count == 10) return 1;
+	}
+
+}
+
+
+////testet ob die Zeile/Spalte, in die soeben ein Symbol eingegeben wurde damit vollständig ist
+////wenn ja wird der Idex in die Merkvektoren geschrieben
+//void complete_check(char arr[10][10], int* complete_row, int* complete_column, int x_matrix, int y_matrix) {
 //
-//	int count = 0;
+//	int count1 = 0;
 //	// überprüfen ob Zeile komplett ist
 //	for (int i = 0; i < 10; i++) {
-//		if (arr[y_matrix][i] != ' ') count++;
+//		if (arr[y_matrix][i] != ' ') count1++;
 //	}
-//	if (count == 10) struct Zeile[]
+//	//wenn Zeile Komplett, wird der index der Zeile in den Merkvektor geschrieben
+//	if (count1 == 10) {
+//		static int place1 = 0;
+//		complete_row[place1] = y_matrix;
+//		place1++;
+//	}
+//
+//	//überprüfen ob Spalte komplett ist
+//	int count2 = 0;
+//	for (int i = 0; i < 10; i++) {
+//		if (arr[i][x_matrix] != ' ') count2++;
+//	}
+//	//wenn wenn Spalte Komplett, wird der index der Spalte in den Merkvektor geschrieben
+//	if (count2 == 10) {
+//		static int place2 = 0;
+//		complete_column[place2] = x_matrix;
+//		place2++;
+//	}
+//
 //}
 
+//dient der Festlegung der Grenzen Für Regel 2, zwei Felder vor eingegebenem Feld muss überprüft werden, jedoch nicht für 1. und 2. Feld
+//wenn x == 0 -> return 0; x == 1 -> return 1, 1 < x <= 9 -> return 2
 int funktion1(int x) {
 	                                                      
 	if (x >= 2) return 2;
 	else return x;
 }    
 
+
+//dient der Festlegung der Grenzen Für Regel 2 zwei Felder nach eingegebenem Feld muss überprüft werden, jedoch nicht für 8. und 9. Feld
+//wenn x == 8 -> return 1; x == 9 -> return 0, 0 <= x < 8 -> return 2
 int funktion2(int x) {
 
 	if (x <= 7) return 2;
 	else return -x+9;
 }
+
+
