@@ -14,23 +14,24 @@ void new_game();
 void set_array(char arr[10][10], int choice, int* anz);
 void print_field(char arr[10][10]);
 void load_game();
-void load_arr(char arr[10][10], char* name, int* anz);
+void load_arr(char arr[10][10], char* name, int* anz, int* undo_position, int undo_stack[100][2]);
 void check_savegames(char* check);
 void display_rules();
-void save_arr(char arr[10][10], char *name, const int* anz);
+void save_arr(char arr[10][10], char *name, const int* anz, int* undo_position, int undo_stack[100][2]);
 void display_savegames(char* check);
-void save_game(char arr[10][10], int *anz);
+void save_game(char arr[10][10], int *anz, int* undo_position, int undo_stack[100][2]);
 void set_check(char* check, int choice, char mode);
 void options();
 void delete_game();
-int game(char arr[10][10], int* anz);
+int game(char arr[10][10], int* anz, int* undo_position, int undo_stack[100][2]);
 void gotoXY(int x, int y);
-int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol);
+int getKey(char arr[10][10], int *anz, int* x_field, int* y_field, char* symbol, int undo_stack[100][2], int* undo_position);
 int funktion1(int x);
 int funktion2(int x);
 int duplicatec_check(char arr[10][10], int* duplicate, int column);
 int duplicater_check(char arr[10][10], int* duplicate, int row);
 void complete_check(char arr[10][10], int* tempr, int* tempc, int x_matrix, int y_matrix);
+void undo(int* anz, int undo_stack[100][2], int* position, char arr[10][10], int zeile, int spalte, char mode);
 
 
 int main() {
@@ -74,7 +75,7 @@ int menu(char* prompt, int min, int max, int count) {
 //Läd einen Spielstand aus einem vorherigen Spiel
 void load_game() {
 	char check[3], arr[10][10];
-	int anz;
+	int anz, undo_position = 0, undo_stack[100][2];
 
 	while (1) {
 		set_array(arr, 4, &anz);
@@ -96,11 +97,11 @@ void load_game() {
 
 		//Spielstand aus entsprechender Datei wird über load_arr Funktion geladen
 		switch (choice) {
-		case 1: load_arr(arr, "Saves/save_game1.txt", &anz);
+		case 1: load_arr(arr, "Saves/save_game1.txt", &anz, &undo_position, undo_stack);
 			break;
-		case 2: load_arr(arr, "Saves/save_game2.txt", &anz);
+		case 2: load_arr(arr, "Saves/save_game2.txt", &anz, &undo_position, undo_stack);
 			break;
-		case 3: load_arr(arr, "Saves/save_game3.txt", &anz);
+		case 3: load_arr(arr, "Saves/save_game3.txt", &anz, &undo_position, undo_stack);
 			break;
 		}
 
@@ -118,12 +119,12 @@ void load_game() {
 	
 
 	//bei return Value 1 wäre Spiel gewonnen oder verloren (kein Speichern nötig)
-	if (game(arr, &anz) != 1) return;
+	if (game(arr, &anz, &undo_position, undo_stack) != 1) return;
 
 	gotoXY(1, 27);
 	printf("                                                                                       \n                                                                       ");
 	gotoXY(1, 27);
-	save_game(arr, &anz);
+	save_game(arr, &anz, &undo_position, undo_stack);
 	return;
 
 
@@ -134,10 +135,11 @@ void load_game() {
 void new_game() {
 	//initialisieren der matrix, der Anzahl der gefüllten Felder 
 	char arr[10][10];
-	int anz;
+	int anz, undo_position = 0, undo_stack[100][2];
+	
 
 	do {
-		//Array leeren und Áuswahl des Levels
+		//Array leeren und Auswahl des Levels
 		set_array(arr, 4, &anz);
 		printf("\nWelches Level möchtest du spielen ?\n\n\t1 - Level 1\n\n\t2 - Level 2\n\n\t3 - Level 3\n\n  0 - Zum Hauptmen\201 zur\201ck kehren!\n\n");
 		int choice = eingabe_int(">>>", 0, 3, 5);
@@ -158,14 +160,14 @@ void new_game() {
 
 
 	//bei return Value 1 wäre Spiel gewonnen oder verloren (kein Speichern nötig)
-	if (game(arr, &anz) != 1) return;
+	if (game(arr, &anz, &undo_position, undo_stack) != 1) return;
 	
 
 	//Speichern des Spielestandes mittels der Funktion save_game
 	gotoXY(1, 27);
 	printf("                                                                                       \n                                                                       ");
 	gotoXY(1, 27);
-	save_game(arr, &anz);
+	save_game(arr, &anz, &undo_position, undo_stack);
 	return;
 }
 
@@ -462,7 +464,7 @@ void set_check(char* check, int choice, char mode) {
 
 
 //Initialisiert einen Array aus einer Datei (Laden eines zuvor gespeicherten Spielestands)
-void load_arr(char arr[10][10], char* name, int* anz) {
+void load_arr(char arr[10][10], char* name, int* anz, int* undo_position, int undo_stack[100][2]) {
 
 	FILE *fp;
 	if ((fp = fopen(name, "r+t")) == 0) {
@@ -487,12 +489,27 @@ void load_arr(char arr[10][10], char* name, int* anz) {
 		arr[zeile][spalte] = wert;
 
 	}
+
+	//Laden des Positions Zeigers auf den undo_stack
+	if (fscanf(fp, "%d", undo_position) != 1) {
+		printf("\nFehler Datei Inhalt konnte nicht richtig geladen werden!\n");
+		exit(1);
+	}
+
+	//Laden des Vektors als 3er Block /erste Zahl == Zeile, zweite Zahl == Spalte, danach folg das entsprechende Zeichen (x oder o)
+	for (int i = 0; i < *undo_position; i++) {
+		if (fscanf(fp, "%d %d", &undo_stack[i][0], &undo_stack[i][1]) != 2) {
+			printf("\nFehler datei Inhalt konnte nicht richtig geladen werden!\n");
+			exit(1);
+		}
+	}
+
 	fclose(fp);
 }
 
 
 //speichern eines Arrays in einer Datei (Speichern eines Spielstandes)
-void save_arr(char arr[10][10], char *name, const int* anz) {
+void save_arr(char arr[10][10], char *name, const int* anz, int* undo_position, int undo_stack[100][2]) {
 	FILE *fp;
 	if ((fp = fopen(name, "w+t")) == 0) {
 		printf("\nFehler: konnte Datei %s nicht \224ffnen", name);
@@ -505,7 +522,7 @@ void save_arr(char arr[10][10], char *name, const int* anz) {
 		exit(1);
 	}
 	
-	//Speichern des Vektorinhalts ind die Datei
+	//Speichern des Vektorinhalts in die Datei
 	for (int zeile = 0; zeile < 10; zeile++) {
 		for (int spalte = 0; spalte < 10; spalte++) {
 			if (arr[zeile][spalte] != ' ') {
@@ -516,6 +533,21 @@ void save_arr(char arr[10][10], char *name, const int* anz) {
 			}
 		}
 	}
+
+	//Speichern der Position des Zeigers auf den undo_stack
+	if (fprintf(fp, " %d", *undo_position) == 0) {
+		printf("\nFehler: Konnte Inhalt nicht in die Datei schreiben!\n");
+		exit(1);
+	}
+
+	//Speichern des undo_stacks
+	for (int zeile = 0; zeile < *undo_position; zeile++) {
+		if (fprintf(fp, " %d %d", undo_stack[zeile][0], undo_stack[zeile][1]) == 0) {
+			printf("\nFehler: Konnte Inhalt nicht in die Datei schreiben!\n");
+			exit(1);
+		}
+	}
+			
 	fclose(fp);
 }
 
@@ -543,7 +575,7 @@ void display_savegames(char* check) {
 
 
 //Dialogabfrage ob Spielstand gespeichert werden soll und wo
-void save_game(char arr[10][10], int *anz) {
+void save_game(char arr[10][10], int *anz, int* undo_position, int undo_stack[100][2]) {
 	char check[3];
 
 	//Frage ob spielstand gelöscht oder gespeichert werden soll
@@ -567,11 +599,11 @@ void save_game(char arr[10][10], int *anz) {
 
 		//Spielstand wird auf entsprechendem Speicherslot gespeichert
 		switch (choice) {
-		case 1: save_arr(arr, "Saves/save_game1.txt", anz);
+		case 1: save_arr(arr, "Saves/save_game1.txt", anz, undo_position, undo_stack);
 			break;
-		case 2: save_arr(arr, "Saves/save_game2.txt", anz);
+		case 2: save_arr(arr, "Saves/save_game2.txt", anz, undo_position, undo_stack);
 			break;
-		case 3: save_arr(arr, "Saves/save_game3.txt", anz);
+		case 3: save_arr(arr, "Saves/save_game3.txt", anz, undo_position, undo_stack);
 			break;
 		}
 		
@@ -586,7 +618,7 @@ void save_game(char arr[10][10], int *anz) {
 
 
 //Spiel Funktion
-int game(char arr[10][10], int* anz) {
+int game(char arr[10][10], int* anz, int* undo_position,int undo_stack[100][2]) {
 
 	//Koordinaten für das Spielfeld und Speichervektoren für vollständige Zeilen/Spalten (20 dient als Leerfeld, also noch keine Initialisiereung)
 	int x_field = 12, y_field = 6, complete_row[10] = { 20, 20, 20, 20 , 20, 20, 20, 20, 20, 20 }, complete_column[10] = { 20, 20, 20, 20 , 20, 20, 20, 20, 20, 20 };
@@ -599,6 +631,7 @@ int game(char arr[10][10], int* anz) {
 	//Bildschirm clear + Spielfeldausgabe
 	system("cls");
 	printf("\n  Bewege den Cursor mit den Pfeiltasten und geben sie im gew\201nschten Feld 'x' oder 'o' den Regeln entsprechend ein!\n");
+	gotoXY(0, 2);
 	print_field(arr);
 
 	//Funktion um Cursor zu bewegen und Symbole einzugeben
@@ -607,7 +640,7 @@ int game(char arr[10][10], int* anz) {
 	while (1) {
 		do {
 			gotoXY(x_field, y_field);
-		} while (getKey(arr, &x_field, &y_field, &symbol));
+		} while (getKey(arr, anz, &x_field, &y_field, &symbol, undo_stack, undo_position));
 
 		//Spiel verlassen
 		if (symbol == 27) return 1;
@@ -615,11 +648,13 @@ int game(char arr[10][10], int* anz) {
 		//umrechnen der angepassten x und y Werte des Spielfeldes auf die tatsächlichen Indexfelder der Matrix
 		int x_matrix = (x_field - 12) / 4, y_matrix = (y_field - 6) / 2;
 
-		//überprüfen des eingegebenen Zeichens auf Regelverstoß
+		//überprüfen des eingegebenen Zeichens auf Regelverstoß und Position Merken für Undo Funktion
 		if (arr[y_matrix][x_matrix] == ' ') {
 			if (rule_check(arr, x_field, y_field, x_matrix, y_matrix, symbol, complete_row, complete_column)) {
+				undo(anz, undo_stack, undo_position, arr, y_matrix, x_matrix, 's');
 				(*anz)++;
 				printf("%c", symbol);
+
 				//Testen ob Matrix komplett gefüllt und das Spiel damit gewonnen (nur Test von einem Vektor nötig, da wenn alle Zeilen gefüllt sind, automatisch auch alle Spalten gefüllt sein müssen
 				int count = 0;
 				for (int i = 0; i < 10; i++) {
@@ -650,12 +685,13 @@ void gotoXY(int x, int y) {
 
 
 //erkennt welche Taste auf der Tastatur gedrückt wurde
-int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol) {
+int getKey(char arr[10][10], int *anz, int* x_field, int* y_field, char* symbol, int undo_stack[100][2], int* undo_position) {
 
 	//liest einen charakter ohne Enter in result ein und überprüft ob es sich um eine Pfeiltaste oder die Eingabe eines 'x' oder 'o' handelt
 	//wenn Pfeiltaste werden die x und y Koordinaten entsprechend aktualisiert
 	//wenn 'x' oder 'o' werden Regeln überprüft und in Array geschrieben
 	int result = getch();
+
 	if ((result == 224) || (result == 0)) {
 		switch (getch()) {
 			
@@ -690,12 +726,22 @@ int getKey(char arr[10][10], int* x_field, int* y_field, char* symbol) {
 			return 1;
 		}
 				 break;
+
+		 //Undo Funktion auslösen mit Entfernen Taste 
+		case 83: {
+			undo(anz, undo_stack, undo_position, arr, *y_field, *x_field, 'd');
+			gotoXY(0, 2);
+			print_field(arr);
+			gotoXY(*x_field, *y_field);
+			return 1;
+		}
+				 break;
 		return 1;
 
 		}
 	}
 	//Eingabe von x oder o mit Regelprüfung
-	else if ((result == 'x') || (result == 'o') || (result == 27)) {
+	else if ((result == 'x') || (result == 'o') || (result == 27) ) {
 
 		*symbol = result;
 		return 0;
@@ -888,36 +934,6 @@ int duplicatec_check(char arr[10][10], int* duplicate, int column) {
 }
 
 
-////testet ob die Zeile/Spalte, in die soeben ein Symbol eingegeben wurde damit vollständig ist
-////wenn ja wird der Idex in die Merkvektoren geschrieben
-//void complete_check(char arr[10][10], int* complete_row, int* complete_column, int x_matrix, int y_matrix) {
-//
-//	int count1 = 0;
-//	// überprüfen ob Zeile komplett ist
-//	for (int i = 0; i < 10; i++) {
-//		if (arr[y_matrix][i] != ' ') count1++;
-//	}
-//	//wenn Zeile Komplett, wird der index der Zeile in den Merkvektor geschrieben
-//	if (count1 == 10) {
-//		static int place1 = 0;
-//		complete_row[place1] = y_matrix;
-//		place1++;
-//	}
-//
-//	//überprüfen ob Spalte komplett ist
-//	int count2 = 0;
-//	for (int i = 0; i < 10; i++) {
-//		if (arr[i][x_matrix] != ' ') count2++;
-//	}
-//	//wenn wenn Spalte Komplett, wird der index der Spalte in den Merkvektor geschrieben
-//	if (count2 == 10) {
-//		static int place2 = 0;
-//		complete_column[place2] = x_matrix;
-//		place2++;
-//	}
-//
-//}
-
 //dient der Festlegung der Grenzen Für Regel 2, zwei Felder vor eingegebenem Feld muss überprüft werden, jedoch nicht für 1. und 2. Feld
 //wenn x == 0 -> return 0; x == 1 -> return 1, 1 < x <= 9 -> return 2
 int funktion1(int x) {
@@ -936,3 +952,40 @@ int funktion2(int x) {
 }
 
 
+//Undo Funktion um Spielzüge wieder rückgängig zu machen
+//Mode: 's' ist save ... jeder Spielzug muss im undo_stack vermerkt werden
+//Mode: 'd' ist do ... ausführen der Undo funktion, letzter Zug wird rückgängig gemacht
+void undo(int* anz, int undo_stack[100][2],int* position, char arr[10][10], int zeile, int spalte, char mode) {
+	
+	if (mode == 's') {
+		if (*position > 100) {
+			printf("\nFehler im Programm! Spiel bitte neu starten.");
+			exit(1);
+		} 
+
+		int i = 0;
+		undo_stack[*position][i] = zeile;
+		undo_stack[*position][i + 1] = spalte;
+		(*position)++;
+	}
+
+	if (mode == 'd') {
+		if (*position > 0) {
+			(*position)--;
+			(*anz)--;
+			arr[undo_stack[*position][0]][undo_stack[*position][1]] = ' ';
+			undo_stack[*position][0] = 0;
+			undo_stack[*position][1] = 0;
+		}
+		else {
+			gotoXY(1, 27);
+			printf("Anfang des Spiels erreicht, kein weiteres Zur\201ckspringen m\224glich                    \n                                                                   ");
+			gotoXY(zeile, spalte);
+
+		}
+
+
+	}
+	
+
+}
