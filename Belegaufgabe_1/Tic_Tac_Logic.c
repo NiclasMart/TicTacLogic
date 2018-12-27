@@ -418,7 +418,7 @@ void check_savegames(char* check) {
 	FILE *fp;
 	
 	
-	if ((fp = fopen("Saves/save_games.txt", "r")) == NULL) {
+	if (fopen_s(&fp,"Saves/save_games.txt", "r") == NULL) {
 		printf("\nFehler beim öffnen der Datei!");
 		exit(1);
 	}
@@ -427,7 +427,7 @@ void check_savegames(char* check) {
 	//1 steht für Spielstand vorhanden und 0 für Spielstand leer
 	for (int i = 0; i < 3; i++) {
 		char c;
-		if (fscanf(fp, "%c", &c) == EOF){
+		if (fscanf_s(fp, "%c", &c) == EOF){
 			printf("Fehler beim Lesen der Datei!");
 			exit(2);
 		}
@@ -443,7 +443,7 @@ void set_check(char* check, int choice, char mode) {
 
 	FILE *fp;
 
-	if ((fp = fopen("Saves/save_games.txt", "w+t")) == NULL){
+	if (fopen_s(&fp, "Saves/save_games.txt", "w+t") == NULL){
 		printf("\nFehler: konnte Datei save_games.txt nicht \224ffnen");
 		exit(1);
 	}
@@ -467,13 +467,13 @@ void set_check(char* check, int choice, char mode) {
 void load_arr(char arr[10][10], char* name, int* anz, int* undo_position, int undo_stack[100][2]) {
 
 	FILE *fp;
-	if ((fp = fopen(name, "r+t")) == 0) {
+	if (fopen_s(&fp, name, "r+t") == 0) {
 		printf("\nFehler: konnte Datei %s nicht \224ffnen", name);
 		exit(1);
 	}
 
 	//Laden der Anzahl (Anzahl entspricht der Anzahl der nicht mit ' ' initialisierten Felder)
-	if (fscanf(fp, "%d ", anz) != 1) {
+	if (fscanf_s(fp, "%d ", anz) != 1) {
 		printf("\nFehler Datei Inhalt konnte nicht richtig geladen werden!\n");
 		exit(1);
 	}
@@ -482,7 +482,7 @@ void load_arr(char arr[10][10], char* name, int* anz, int* undo_position, int un
 	char wert;
 	int zeile, spalte;
 	for (int i = 0; i < *anz; i++) {
-		if (fscanf(fp, "%d %d %c", &zeile, &spalte, &wert) != 3) {
+		if (fscanf_s(fp, "%d %d %c", &zeile, &spalte, &wert) != 3) {
 				printf("\nFehler datei Inhalt konnte nicht richtig geladen werden!\n");
 				exit(1);	
 		}
@@ -511,7 +511,7 @@ void load_arr(char arr[10][10], char* name, int* anz, int* undo_position, int un
 //speichern eines Arrays in einer Datei (Speichern eines Spielstandes)
 void save_arr(char arr[10][10], char *name, const int* anz, int* undo_position, int undo_stack[100][2]) {
 	FILE *fp;
-	if ((fp = fopen(name, "w+t")) == 0) {
+	if (fopen_s(&fp, name, "w+t") == 0) {
 		printf("\nFehler: konnte Datei %s nicht \224ffnen", name);
 		exit (1);
 	}

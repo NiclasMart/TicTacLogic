@@ -23,7 +23,7 @@ int eingabe_int (char* promt, int min, int max, int count ){
 
 	//Datentyp prüfen + Wert einlesen
 	
-	if (scanf("%d", &i) != 1) {
+	if (scanf_s("%d", &i) != 1) {
 		printf(">>> FEHLER: Bitte ganzzahligen Wert eingeben! (Noch %d Versuche \201brig)\n", count-1);
 		while (fgetc(stdin) != '\n')								
 			;
@@ -57,11 +57,11 @@ char eingabe_char(char *promt, char *letter, int count){
 	}
 	//Prompt ausgeben
 	printf("%s ", promt);
-	scanf("%c", &i);
+	scanf_s("%c", &i);
 
 	//erneutes einlesen, falls noch Zeichen von auserhalb in das Programm kommen (Reste im Eingabepuffer, von Eingaben vor dem Funktionsaufruf)
 	while ((i == '\n')||(i==10)){
-		scanf("%c", &i);
+		scanf_s("%c", &i);
 	}
 	
 	//Buchstaben mittels übergebenem string prüfen
