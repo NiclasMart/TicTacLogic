@@ -117,6 +117,11 @@
   <ItemGroup>
     <ClCompile Include="Tic_Tac_Logic.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Headerdatei\DauEingaben.h" />
+    <ClInclude Include="Headerdatei\vektor.h" />
+    <ClInclude Include="vecktor.c" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
