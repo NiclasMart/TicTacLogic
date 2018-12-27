@@ -4,7 +4,6 @@ Start 02.12.2018*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "Headerdatei/DauEingaben.h"
-#include "Headerdatei/vektor.h"
 #include <windows.h>
 
 
