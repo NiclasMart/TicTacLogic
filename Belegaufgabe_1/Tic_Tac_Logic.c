@@ -491,14 +491,14 @@ void load_arr(char arr[10][10], char* name, int* anz, int* undo_position, int un
 	}
 
 	//Laden des Positions Zeigers auf den undo_stack
-	if (fscanf(fp, "%d", undo_position) != 1) {
+	if (fscanf_s(fp, "%d", undo_position) != 1) {
 		printf("\nFehler Datei Inhalt konnte nicht richtig geladen werden!\n");
 		exit(1);
 	}
 
 	//Laden des Vektors als 3er Block /erste Zahl == Zeile, zweite Zahl == Spalte, danach folg das entsprechende Zeichen (x oder o)
 	for (int i = 0; i < *undo_position; i++) {
-		if (fscanf(fp, "%d %d", &undo_stack[i][0], &undo_stack[i][1]) != 2) {
+		if (fscanf_s(fp, "%d %d", &undo_stack[i][0], &undo_stack[i][1]) != 2) {
 			printf("\nFehler datei Inhalt konnte nicht richtig geladen werden!\n");
 			exit(1);
 		}
