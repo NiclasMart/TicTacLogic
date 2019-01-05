@@ -90,7 +90,7 @@ void load_game() {
 		set_array(arr, 4, &anz);
 
 		//Ausgabe der Auswahl über die display_savegames Funktion
-		printf("\n     Welchen Spielstand m\224chtest du laden ?\n\n");
+		printf("\n\n     Welchen Spielstand m\224chtest du laden ?\n\n");
 		display_savegames(check);
 		printf("\n     0 - Zum Hauptmen\201 zur\201ckkehren!\n\n");
 
@@ -155,7 +155,7 @@ void new_game() {
 
 		//Array leeren und Auswahl des Levels
 		set_array(arr, 4, &anz);
-		printf("\n     Welches Level m\224chtest du spielen ?\n\n\n\t1 - Level 1\n\n\t2 - Level 2\n\n\t3 - Level 3\n\n\n    0 - Zum Hauptmen\201 zur\201ck kehren!\n\n");
+		printf("\n\n     Welches Level m\224chtest du spielen ?\n\n\n\t1 - Level 1\n\n\t2 - Level 2\n\n\t3 - Level 3\n\n\n    0 - Zum Hauptmen\201 zur\201ck kehren!\n\n");
 		int choice = eingabe_int(">>>", '0', '3', 5);
 
 		//zurück zum Hauptmenü
@@ -300,7 +300,7 @@ void set_array(char arr[10][10], int choice, int* anz) {
 			arr[1][1] = 'o';
 			arr[1][4] = 'o';
 			arr[1][5] = 'o';
-			arr[1][8] = 'o';
+	
 			arr[1][9] = 'x';
 			arr[1][2] = 'x';
 			arr[1][3] = 'x';
@@ -310,7 +310,7 @@ void set_array(char arr[10][10], int choice, int* anz) {
 			arr[3][0] = 'x';
 			arr[4][0] = 'o';
 			arr[5][0] = 'o';
-			arr[6][0] = 'x';
+			
 			arr[7][0] = 'x';
 			arr[8][0] = 'o';
 			arr[2][1] = 'x';
@@ -323,7 +323,7 @@ void set_array(char arr[10][10], int choice, int* anz) {
 			arr[9][1] = 'x';
 			arr[9][0] = 'x';
 			
-			*anz = 26;*/
+			*anz = 24;*/
 			
 			arr[0][2] = 'o';
 			arr[0][3] = 'x';
@@ -385,28 +385,34 @@ void set_array(char arr[10][10], int choice, int* anz) {
 			break;
 		case 3: {
 			arr[0][0] = 'x';
-			arr[0][3] = 'x';
+			arr[0][1] = 'o';
 			arr[0][5] = 'o';
 			arr[0][7] = 'x';
 			arr[0][8] = 'x';
 			arr[1][5] = 'o';
 			arr[1][9] = 'o';
+			arr[1][0] = 'o';
 			arr[2][2] = 'x';
+			arr[2][4] = 'o';
 			arr[3][7] = 'x';
+			arr[3][9] = 'o';
 			arr[4][3] = 'x';
 			arr[4][4] = 'x';
 			arr[4][7] = 'x';
 			arr[4][8] = 'o';
 			arr[5][1] = 'x';
 			arr[5][4] = 'o';
+			arr[5][7] = 'o';
 			arr[6][0] = 'x';
 			arr[6][5] = 'x';
-			arr[7][0] = 'x';
+			arr[7][6] = 'o';
 			arr[7][5] = 'x';
 			arr[8][3] = 'x';
+			arr[8][4] = 'o';
 			arr[8][8] = 'o';
 			arr[9][1] = 'o';
-			*anz = 22;
+			arr[9][4] = 'o';
+			*anz = 28;
 			
 		}
 			break;
@@ -881,8 +887,7 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 	complete_check(arr, &tempr, &tempc, x_matrix, y_matrix);
 
 	//wenn Zeile komplett ist (also tempr != 20) wird sie mit allen zuvor fertig gestellten Zeilen in der Funktion duplicate_check verglichen
-	//wenn wenn kein Duplicat vorliegt wird die tempr in den Vektor geschrieben 
-	static int placer = 0, placec = 0;
+	// wenn kein Duplicat vorliegt wird die tempr in den Vektor geschrieben 
 	if (tempr != 20) {
 		if (duplicater_check(arr, complete_row, tempr) == 1) {
 			arr[y_matrix][x_matrix] = ' ';
@@ -892,8 +897,12 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 			return 0;
 		}
 		else {
-			complete_row[placer] = y_matrix;
-			placer++;
+			for (int i = 0; i < 10; i++) {
+				if (complete_row[i] == 20) {
+					complete_row[i] = y_matrix;
+					break;
+				}
+			}
 		}
 	}
 
@@ -904,13 +913,24 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 			gotoXY(1, 27);
 			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Spalten m\201ssen einzigartig sein!", symbol);
 			gotoXY(x_field, y_field);
-			//wenn Zeile komplett und einzigartig aber Spalte Duplicate, wird Symbol nicht in Matrix übertragen und Zeile ist somit nicht komplett (muss wieder aus dem Merkvektor entfernt werden)
-			if (tempr != 20) complete_column[placer] = 20;
+			//wenn Zeile komplett und einzigartig aber Spalte Duplicat, wird Symbol nicht in Matrix übertragen und Zeile ist somit nicht komplett (muss wieder aus dem Merkvektor entfernt werden)
+			if (tempr != 20) {
+				for (int i = 0; i < 10; i++) {
+					if (complete_row[i] == tempr) {
+						complete_row[i] = 20;
+						break;
+					}
+				}
+			}
 			return 0;
 		}
 		else {
-			complete_column[placec] = x_matrix;
-			placec++;
+			for (int i = 0; i < 10; i++) {
+				if (complete_column[i] == 20) {
+					complete_column[i] = x_matrix;
+					break;
+				}
+			}
 		}
 	}
 	return 1;
@@ -948,7 +968,7 @@ int duplicater_check(char arr[10][10], int* duplicate, int row) {
 	//Duplicatprüfung für Zeilen
 	int count;
 		for (int i = 0; i < 10; i++) {
-			if (duplicate[i] == 20) return 0;
+			if (duplicate[i] == 20) continue;
 			count = 0;
 			for (int j = 0; j < 10; j++) {
 				if (arr[duplicate[i]][j] == arr[row][j]) count++;
@@ -956,7 +976,7 @@ int duplicater_check(char arr[10][10], int* duplicate, int row) {
 			}
 			if (count == 10) return 1;
 		}
-	
+		return 0;
 }
 
 
@@ -966,7 +986,7 @@ int duplicatec_check(char arr[10][10], int* duplicate, int column) {
 	//Duplicatprüfung für Spalte
 	int count;
 	for (int i = 0; i < 10; i++) {
-		if (duplicate[i] == 20) return 0;
+		if (duplicate[i] == 20) continue;
 		count = 0;
 		for (int j = 0; j < 10; j++) {
 			if (arr[j][duplicate[i]] == arr[j][column]) count++;
@@ -974,7 +994,7 @@ int duplicatec_check(char arr[10][10], int* duplicate, int column) {
 		}
 		if (count == 10) return 1;
 	}
-
+	return 0;
 }
 
 
@@ -1070,6 +1090,7 @@ void solve() {
 	else {
 		printf("L\224sung:\n\n");
 		print_field(arr);
+		system("PAUSE");
 	}
 }
 
@@ -1083,8 +1104,7 @@ int solve_algorithm(char arr[10][10]) {
 		complete_check(arr, &complete_row[i], &complete_column[i], i, i);
 	}
 
-	//umwandeln der char Matrix in eine Integer Matrix
-	//alle nicht gefüllten Felder werden zu 0 und alle bereits initialisierten Felder zu 20
+	
 	char temp_arr[10][10];
 
 	for (int i = 0; i < 10; i++) {
@@ -1095,19 +1115,24 @@ int solve_algorithm(char arr[10][10]) {
 
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
+			/*system("PAUSE");*/
+			system("cls");
+			print_field(arr);
 			if (arr[i][j] == ' ') {
 				if (rule_check(arr, NULL, NULL, j, i, 'x', complete_row, complete_column) == 1) continue;
-				/*else {
-					system("cls");
+				else {
+					/*system("cls");*/
 					if (rule_check(arr, NULL, NULL, j, i, 'o', complete_row, complete_column) == 1) continue;
-					else {*/
-						system("cls");
+					else {
+						/*system("cls");*/
 						if (go_back(arr, temp_arr, &i, &j, complete_row, complete_column) == 0) return 0;
-					/*}*/
-				/*}*/
+					}
+				}
 			}
 			else continue;
 			
+			system("cls");
+			print_field(arr);
 				
 
 		}
@@ -1124,31 +1149,44 @@ int solve_algorithm(char arr[10][10]) {
 int go_back(char arr[10][10], char temp_arr[10][10], int* zeile, int* spalte, int* complete_row, int* complete_column) {
 
 	//if ((*zeile == 0) && (*spalte == 0) && (arr[0][0] == 'o')) return 0;
-
+	
 	if (*spalte == 0) {
 		(*zeile)--;
 		*spalte = 9;
-		/*complete_row[*zeile] == 20;*/
+		for (int i = 0; i < 10; i++) {
+			if (complete_row[i] == *zeile) complete_row[i] = 20;
+		}
 	}
 	else {
 		(*spalte)--;
-		/*if (*zeile == 9) complete_column[*spalte] == 20;*/
+		if (temp_arr[*zeile][*spalte] == ' ') {
+			for (int i = 0; i < 10; i++) {
+				if (complete_column[i] == *spalte) complete_column[i] = 20;
+			}
+		}
 	}
 
-	if ((arr[*zeile][*spalte] == 'x') && (temp_arr[*zeile][*spalte] == ' ')) {
-		if (rule_check(arr, NULL, NULL, *spalte, *zeile, 'o', complete_row, complete_column) == 1) return 1;
+	/*if (temp_arr[*zeile][*spalte] != ' ') go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
+	else {*/
+		if ((arr[*zeile][*spalte] == 'x') && (temp_arr[*zeile][*spalte] == ' ')) {
+			if (rule_check(arr, NULL, NULL, *spalte, *zeile, 'o', complete_row, complete_column) == 1) return 1;
+			else {
+
+				/*system("cls");*/
+				go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
+			}
+		}
 		else {
-			system("cls");
+			if (temp_arr[*zeile][*spalte] == ' ') arr[*zeile][*spalte] = ' ';
 			go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
+				/*}*/
+			/*}*/
 		}
-	}
-	else {
-		if (temp_arr[*zeile][*spalte] == ' ') {
-			arr[*zeile][*spalte] = ' ';
-			go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
-		}
-		go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
-	}
+	/*}*/
+	
+	
+	
+	
 }
 
 
