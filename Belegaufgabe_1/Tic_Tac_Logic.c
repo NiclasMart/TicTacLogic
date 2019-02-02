@@ -9,6 +9,7 @@ Start 02.12.2018*/
 
 
 int menu(char* prompt, int min, int max, int count);
+void about();
 void new_game();
 void set_array(char arr[10][10], int choice, int* anz);
 void print_field(char arr[10][10]);
@@ -24,7 +25,7 @@ void options();
 void delete_game();
 int game(char arr[10][10], int* anz, int* undo_position, int undo_stack[100][2]);
 void gotoXY(int x, int y);
-int getKey(char arr[10][10], int *anz, int* x_field, int* y_field, char* symbol, int undo_stack[100][2], int* undo_position);
+int getKey(char arr[10][10], int *anz, int* x_field, int* y_field, char* symbol, int undo_stack[100][2], int* undo_position, int* complete_row, int* complete_column);
 int funktion1(int x);
 int funktion2(int x);
 int duplicatec_check(char arr[10][10], int* duplicate, int column);
@@ -43,7 +44,7 @@ int main() {
 
 	while (1) {
 
-		switch (menu("\n\n     Men\201:\n\n\t1 - Spiel Laden\n\n\t2 - Neues Spiel\n\n\t3 - Optionen\n\n\t4 - About\n\n\t5 - Exit\n\n", '1', '5', 5)) {
+		switch (menu("\n\n     Men\201:\n\n\t1 - Spiel Laden\n\n\t2 - Neues Spiel\n\n\t3 - Optionen\n\n\t4 - About\n\n\t5 - Exit\n\n", 1, 5, 5)) {
 
 		case 1: //Spiel Laden
 			load_game();
@@ -58,10 +59,11 @@ int main() {
 			system("cls");
 			break;
 		case 4: //About
-
+			about();
+			system("cls");
 			break;
 		case 5: //Exit
-			printf("\n\nDanke fürs Spielen. Bis zum nächsten Mal :D");
+			printf("\n\nDanke f\201rs Spielen. Bis zum n\204chsten Mal :D\n\n");
 			system("PAUSE");
 			return 0;
 			break;
@@ -70,13 +72,23 @@ int main() {
 	return 0;
 }
 
-
 //ruft das Menü auf und ließt gewünschten Menü - Punkt von User DAU Sicher ein
-int menu(char* prompt, char min, char max, int count) {
+int menu(char* prompt, int min, int max, int count) {
 	printf("%s", prompt);
 	return eingabe_int(">>>", min, max, count);
 }
 
+//zeigt den "About" Text an
+void about() {
+	system("cls");
+	printf("\nDieses Projekt entstand im Rahmen der Belegarbeit des ersten Semesters im Bereich C - Programmierung.\nStudiengang Medieninformatik; HTW Dresden\n\n\"Entwickler\":\tNiclas Mart\n");
+	printf("\n Tester:\tPaul Langner\n\t\tBao Long Kong\n\t\tGeorg Reichel\n\t\tJosi R\201drich\n\nDas Projekt befindet sich noch in einer Art \"Beta Version\", ");
+	printf("so ist der Algorythmus zur selbstst\204ndigen L\224sung\neines Spielfeldes noch \201beraus ineffektiv, da er auf einem Bruteforce Verfahren beruht. Es wird jedoch bereits an\neiner verbesserten Version gearbeitet. ");
+	printf("Sollten sie unerwartete Bugs oder Fehler im Programm finden, wenden sie\nsich bitte an folgende Email Adresse:\n\n > salcintram07@web.de\n\n");
+	printf("Das Entwickler \"Team\" dankt ihnen, dass sie sich f\201r dieses Produkt entschieden haben und hofft eine positive\nR\201ckmeldung und eine gute Bewertung von ihnen zu erhalten ;)\n\n");
+	system("PAUSE");
+
+}
 
 //Läd einen Spielstand aus einem vorherigen Spiel
 void load_game() {
@@ -95,12 +107,12 @@ void load_game() {
 		printf("\n     0 - Zum Hauptmen\201 zur\201ckkehren!\n\n");
 
 		//Auswahl des Spielers und return falls Rückkehr zum Hauptmenü (0) ausgewählt wurde
-		int choice = eingabe_int(">>>", '0', '3', 5);
+		int choice = eingabe_int(">>>", 0, 3, 5);
 		if (choice == 0) return;
 
 		//verhindert, dass ein leerer Spielstand geladen wird
 		if (check[choice - 1] == '0') {
-			printf("\nDieser Spielstand kann nicht geladen werden, da keine Speicherdaten vorliegen (Spielstand ist leer)!\nBitte einen vollen Spielstand w\204hlen!\n\n");
+			printf("\n     Dieser Spielstand kann nicht geladen werden, da keine Speicherdaten vorliegen (Spielstand ist leer)!\n     Bitte einen vollen Spielstand w\204hlen!\n\n");
 			system("PAUSE");
 			continue;
 		}
@@ -156,7 +168,7 @@ void new_game() {
 		//Array leeren und Auswahl des Levels
 		set_array(arr, 4, &anz);
 		printf("\n\n     Welches Level m\224chtest du spielen ?\n\n\n\t1 - Level 1\n\n\t2 - Level 2\n\n\t3 - Level 3\n\n\n    0 - Zum Hauptmen\201 zur\201ck kehren!\n\n");
-		int choice = eingabe_int(">>>", '0', '3', 5);
+		int choice = eingabe_int(">>>", 0, 3, 5);
 
 		//zurück zum Hauptmenü
 		if (choice == 0) return;
@@ -168,7 +180,7 @@ void new_game() {
 	} while (eingabe_char("\n\n\n\t> J - Ja\n\n\t> N - Nein\n\n>>>", "JN", 5) == 'N');
 
 	//Frage ob Spielregeln angezeigt werden sollen
-	printf("\nM\224chtest du die Spielregeln sehen ?");
+	printf("\n     M\224chtest du die Spielregeln sehen ?");
 	if (eingabe_char("\n\n\n\t> J - Ja\n\n\t> N - Nein\n\n>>>", "JN", 5) == 'J') 
 		display_rules();
 
@@ -231,13 +243,13 @@ void delete_game() {
 		char check[3];
 		display_savegames(check);
 		printf("\t4 - Alle Spielst\204nde l\224schen\n\n\n     0 - Zur\201ck\n\n");
-		int choice = eingabe_int(">>>", '0', '4', 5);
+		int choice = eingabe_int(">>>", 0, 4, 5);
 
 		//zurück zum Hauptmnü
 		if (choice == 0) return;
 
 		//Sicherheitsfrage ob Spielstand wirklich gelöscht werden soll
-		if (choice != 4) printf("\n\nM\224chtest du Spielstand %d wirklich l\224schen?", choice);
+		if (choice != 4) printf("\n\n     M\224chtest du Spielstand %d wirklich l\224schen?", choice);
 		else printf("\n\n     M\224chtest du wirklich alle Spielst\204nde l\224schen?");
 
 		if (eingabe_char("\n\n\n\t> J - Ja\n\n\t> N - Nein\n\n>>>", "JN", 5) == 'N') continue;
@@ -245,26 +257,26 @@ void delete_game() {
 		//Löschen der Speicherdaten
 			switch (choice) {
 				case 1: if (remove("Saves/save_game1.txt"))
-							printf("\n     Spielstand konnte nicht gel\224scht werden!\n");
-						else printf("\n\n     Der Spielstand wurde erfolgreich gel\224scht!\n");
+							printf("\n     Spielstand konnte nicht gel\224scht werden!\n\n");
+						else printf("\n\n     Der Spielstand wurde erfolgreich gel\224scht!\n\n");
 					break;
 				case 2: if (remove("Saves/save_game2.txt"))
-							printf("\n     Spielstand konnte nicht gel\224scht werden!\n");
-						else printf("\n\n     Der Spielstand wurde erfolgreich gel\224scht!\n");
+							printf("\n     Spielstand konnte nicht gel\224scht werden!\n\n");
+						else printf("\n\n     Der Spielstand wurde erfolgreich gel\224scht!\n\n");
 					break;
 				case 3: if (remove("Saves/save_game3.txt"))
-							printf("\n     Spielstand konnte nicht gel\224scht werden!\n");
-						else printf("\n\n     Der Spielstand wurde erfolgreich gel\224scht!\n");
+							printf("\n     Spielstand konnte nicht gel\224scht werden!\n\n");
+						else printf("\n\n     Der Spielstand wurde erfolgreich gel\224scht!\n\n");
 					break;
 				case 4: if (remove("Saves/save_game1.txt"))
-							printf("\n     Spielstand 1 konnte nicht gel\224scht werden!\n");
-						else printf("\n\n     Spielstand  1 wurde erfolgreich gel\224scht!\n");
+							printf("\n     Spielstand 1 konnte nicht gel\224scht werden!\n\n");
+						else printf("\n\n     Spielstand  1 wurde erfolgreich gel\224scht!\n\n");
 						if (remove("Saves/save_game2.txt"))
-							printf("\n     Spielstand 2 konnte nicht gel\224scht werden!\n");
-						else printf("\n\n     Spielstand  2 wurde erfolgreich gel\224scht!\n");
+							printf("\n     Spielstand 2 konnte nicht gel\224scht werden!\n\n");
+						else printf("\n\n     Spielstand  2 wurde erfolgreich gel\224scht!\n\n");
 						if (remove("Saves/save_game3.txt"))
-							printf("\n     Spielstand 3 konnte nicht gel\224scht werden!\n");
-						else printf("\n\n     Spielstand  3 wurde erfolgreich gel\224scht!\n");
+							printf("\n     Spielstand 3 konnte nicht gel\224scht werden!\n\n");
+						else printf("\n\n     Spielstand  3 wurde erfolgreich gel\224scht!\n\n");
 					break;
 			}
 
@@ -286,6 +298,7 @@ void set_array(char arr[10][10], int choice, int* anz) {
 	
 	switch (choice) {
 		case 1: {
+			//Testmatrix zur besseren Überprüfung der Regeln
 			/*arr[0][0] = 'o';
 			arr[0][1] = 'o';
 			arr[0][4] = 'o';
@@ -355,32 +368,36 @@ void set_array(char arr[10][10], int choice, int* anz) {
 		}
 			break;
 		case 2: {
+			arr[0][0] = 'x';
+			arr[0][3] = 'x';
 			arr[0][5] = 'o';
-			arr[0][8] = 'o';
-			arr[1][0] = 'o';
-			arr[1][3] = 'x';
+			arr[0][7] = 'x';
+			arr[0][8] = 'x';
+			arr[1][2] = 'o';
+			arr[1][4] = 'o';
+			arr[1][5] = 'o';
+			arr[1][9] = 'o';
 			arr[2][2] = 'x';
-			arr[2][6] = 'o';
-			arr[3][4] = 'x';
-			arr[3][5] = 'x';
-			arr[3][8] = 'x';
-			arr[4][0] = 'o';
-			arr[4][1] = 'x';
-			arr[5][0] = 'o';
+			arr[3][3] = 'o';
+			arr[3][6] = 'o';
+			arr[3][7] = 'x';
+			arr[4][3] = 'x';
+			arr[4][4] = 'x';
+			arr[4][7] = 'x';
+			arr[4][8] = 'o';
+			arr[5][1] = 'x';
+			arr[5][2] = 'o';
 			arr[5][4] = 'o';
-			arr[5][5] = 'o';
-			arr[5][8] = 'o';
-			arr[6][2] = 'o';
-			arr[6][3] = 'x';
-			arr[7][1] = 'x';
-			arr[7][7] = 'o';
-			arr[8][0] = 'x';
-			arr[8][5] = 'x';
-			arr[9][1] = 'x';
-			arr[9][4] = 'o';
-			arr[9][9] = 'x';
-			*anz = 24;
-			
+			arr[5][7] = 'o';
+			arr[6][0] = 'x';
+			arr[6][2] = 'x';
+			arr[6][3] = 'o';
+			arr[6][5] = 'x';
+			arr[7][0] = 'x';
+			arr[7][5] = 'x';
+			arr[8][8] = 'o';
+			arr[9][1] = 'o';
+			*anz = 29;
 		}
 			break;
 		case 3: {
@@ -448,9 +465,10 @@ void print_field(char arr[10][10]) {
 void display_rules() {
 	system("cls");
 	printf("\nAnleitung und Regelwerk zu \"Tic-Tac-Logic\"\n-------------------------------------------\n\nIm Spiel geht es darum, die komplette Tabelle mit 'o' und 'x' zu f\201llen.");
-	printf("\nDamit dies nicht zu einfach ist, gibt es nat\201rlich ein paar Regeln zu beachten.\n\n\n     1. Es d\201rfen nicht mehr als 2 aufeinander folgende 'x' oder 'o' in einer Zeile\n        oder Spalte vorkommen.\n\n");
+	printf("\nDamit dies nicht zu einfach ist, gilt es nat\201rlich ein paar Regeln zu beachten.\n\n\n     1. Es d\201rfen nicht mehr als 2 aufeinander folgende 'x' oder 'o' in einer Zeile\n        oder Spalte vorkommen.\n\n");
 	printf("     2. In jeder Zeile oder Spalte stehen gleich viele 'x' und 'o'.\n\n     3. Alle Zeilen und alle Spalten sind einzigartig.\n\n\nUm in ein freies Feld zu schreiben, bewege den Cursor mit den Pfeiltasten an die gew\201nschte Position.\n");
-	printf("Danach kannst du ein 'x' oder ein 'o' eingeben. Es wird \201berpr\201ft ob die Eingabe allen Regeln entspricht.\nGewonnen hast du, wenn die Tabelle unter Beachtung aller Regeln gef\201llt ist.\nViel Spa\xE1 und Erfolg beim Spielen :)\n\n\n\n");
+	printf("Danach kannst du ein 'x' oder ein 'o' eingeben. Es wird \201berpr\201ft ob die Eingabe allen Regeln entspricht.\nGewonnen hast du, wenn die Tabelle unter Beachtung aller Regeln gef\201llt ist. Solltest du dich einmal\nvertippt haben oder in eine ");
+	printf("Sackgasse geraten, kannst du mittels der der ENTF Taste beliebig viele Schritte\nr\201ckg\204ngig machen. Ein Spiel beenden kannst du mittels der ESC Taste.\n\nViel Spa\xE1 und Erfolg beim Spielen : )\n\n\n\n");
 	system("PAUSE");
 }
 
@@ -621,22 +639,22 @@ void save_game(char arr[10][10], int *anz, int* undo_position, int undo_stack[10
 	char check[3];
 
 	//Frage ob spielstand gelöscht oder gespeichert werden soll
-	printf("\nM\224chtest du den Spielstand vor dem Beenden speichern?\n\n> J - Ja\n> N - Nein\n\n");
-	if (eingabe_char(">>>", "JN", 5) == 'N') {
-		printf("\nBist du dir sicher?\nAlle nicht gespeichrten Daten gehen verloren! Trotzdem beenden?\n\n");
-		if (eingabe_char(">>>", "JN", 5) == 'J') return;
+	printf("\n     M\224chtest du den Spielstand vor dem Beenden speichern?");
+	if (eingabe_char("\n\n\n\t> J - Ja\n\n\t> N - Nein\n\n>>>", "JN", 5) == 'N') {
+		printf("\n     Bist du dir sicher?\n     Alle nicht gespeichrten Daten gehen verloren! Trotzdem beenden?");
+		if (eingabe_char("\n\n\n\t> J - Ja\n\n\t> N - Nein\n\n>>>", "JN", 5) == 'J') return;
 	}
 
 	//Auswahl wo gespeichert werden soll, über check wird überprüft ob auf Slot bereits Spielstand und wenn ja ob dieser überschrieben werden soll
 	while (1){
-		
-		printf("\n\nSPEICHERN: Auf welchem Speicherslot m\224chtest du den Spielstand speichern?\n");
+		system("cls");
+		printf("\n\n     SPEICHERN: Auf welchem Speicherslot m\224chtest du den Spielstand speichern?\n\n");
 		display_savegames(check);
-		int choice = eingabe_int(">>>", '1', '3', 5);
+		int choice = eingabe_int(">>>", 1, 3, 5);
 
 		if (check[choice - 1] == '1') {
-			printf("\nAuf diesem Speicherslot befindet sich bereits ein Spielstand!\nWenn du diesen Speicherslot trotzdem benutzt, wird der Spielstand darin \201berschrieben.\nTrotzdem überschreiben?\n\n");
-			if (eingabe_char(">>>", "JN", 5) == 'N') continue;
+			printf("\n     Auf diesem Speicherslot befindet sich bereits ein Spielstand!\n     Wenn du diesen Speicherslot trotzdem benutzt, wird der Spielstand darin \201berschrieben.\n\n     Trotzdem \201berschreiben?");
+			if (eingabe_char("\n\n\n\t> J - Ja\n\n\t> N - Nein\n\n>>>", "JN", 5) == 'N') continue;
 		}
 
 		//Spielstand wird auf entsprechendem Speicherslot gespeichert
@@ -654,7 +672,8 @@ void save_game(char arr[10][10], int *anz, int* undo_position, int undo_stack[10
 		break;	
 	} 
 
-	printf("\nSpielstand erfolgreich gespeichert. Kehre zur\201ck zum Hauptmen\201!");
+	printf("\n   Spielstand erfolgreich gespeichert. Kehre zur\201ck zum Hauptmen\201!\n\n");
+	system("PAUSE");
 
 }
 
@@ -703,7 +722,7 @@ int game(char arr[10][10], int* anz, int* undo_position,int undo_stack[100][2]) 
 					if (complete_row[i] == 20) break;
 					if (complete_row[9] !=20){
 						gotoXY(1, 27);
-						printf("Herzlichen gl\201ckwunsch! Du hast Gewonnen und das Level erfolgreich geschafft.\n Drücke eine Taste um zurück zum Hauptmenü zu gelangen.                        ");
+						printf("\n    Herzlichen gl\201ckwunsch! Du hast Gewonnen und das Level erfolgreich geschafft.\n Drücke eine Taste um zurück zum Hauptmenü zu gelangen.                        \n");
 						system("PAUSE");
 						return 0;
 					}
@@ -852,7 +871,7 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 		if (counter > 5) {
 			arr[y_matrix][x_matrix] = ' ';
 			gotoXY(1, 27);
-			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n In jeder Zeile m\201ssen gleich viele 'x' und 'o' stehen.", symbol);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n In jeder Zeile m\201ssen gleich viele 'x' und 'o' stehen.         ", symbol);
 			gotoXY(x_field, y_field);
 			return 0;
 		}
@@ -867,7 +886,7 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 		if (counter > 5) {
 			arr[y_matrix][x_matrix] = ' ';
 			gotoXY(1, 27);
-			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n In jeder Spalte m\201ssen gleich viele 'x' und 'o' stehen.", symbol);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n In jeder Spalte m\201ssen gleich viele 'x' und 'o' stehen.           ", symbol);
 			gotoXY(x_field, y_field);
 			return 0;
 		}
@@ -892,7 +911,7 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 		if (duplicater_check(arr, complete_row, tempr) == 1) {
 			arr[y_matrix][x_matrix] = ' ';
 			gotoXY(1, 27);
-			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Zeilen m\201ssen einzigartig sein!", symbol);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Zeilen m\201ssen einzigartig sein!                                    ", symbol);
 			gotoXY(x_field, y_field);
 			return 0;
 		}
@@ -911,7 +930,7 @@ int rule_check(char arr[10][10], int x_field, int y_field, int x_matrix, int y_m
 		if (duplicatec_check(arr, complete_column, tempc) == 1) {
 			arr[y_matrix][x_matrix] = ' ';
 			gotoXY(1, 27);
-			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Spalten m\201ssen einzigartig sein!", symbol);
+			printf("'%c' an dieser Stelle den Regeln entsprechend nicht zul\204ssig!\n Spalten m\201ssen einzigartig sein!                                   ", symbol);
 			gotoXY(x_field, y_field);
 			//wenn Zeile komplett und einzigartig aber Spalte Duplicat, wird Symbol nicht in Matrix übertragen und Zeile ist somit nicht komplett (muss wieder aus dem Merkvektor entfernt werden)
 			if (tempr != 20) {
@@ -1023,7 +1042,7 @@ void undo(int* anz, int undo_stack[100][2],int* position, char arr[10][10], int 
 	
 	if (mode == 's') {
 		if (*position > 100) {
-			printf("\nFehler im Programm! Spiel bitte neu starten.");
+			printf("\nFehler im Programm! Spiel bitte neu starten.\n");
 			exit(1);
 		} 
 
@@ -1050,24 +1069,27 @@ void undo(int* anz, int undo_stack[100][2],int* position, char arr[10][10], int 
 	}
 }
 
+//Menü zum automatischen lösen lassen eines Spielfeldes
 void solve() {
 	char check[3], arr[10][10];
 	int anz;
 	
 	while (1) {
-
+		system("cls");
 		//Ausgabe der Auswahl über die display_savegames Funktion
-		printf("\nWelchen Spielstand m\224chtest du l\224sen lassen ?\n");
+		printf("\n     ACHTUNG!\n     Das L\224sen der Spiele kann noch sehr lange dauern und der Vorgang kann nur durch das Beenden des Programms\n     gestoppt werden. (Anmerkungen zur geplanten Verbesserung ");
+		printf("des Algorythmuses finden sie in dem beiliegenden\n     Text Dokument.  Datei: \"solve-algorithm.txt\")\n\n\n     Welchen Spielstand m\224chtest du l\224sen lassen ? \n\n");
 		display_savegames(check);
-		printf("0 - Zur\201ck zum vorhergehenden Men\201 kehren!\n\n");
+		printf("\n     0 - Zur\201ck zum vorhergehenden Men\201 kehren!\n\n");
 
 		//Auswahl des Spielers und return falls Rückkehr zum Menü (0) ausgewählt wurde
-		int choice = eingabe_int(">>>", '0', '3', 5);
+		int choice = eingabe_int(">>>", 0, 3, 5);
 		if (choice == 0) return;
 
 		//verhindert, dass ein leerer Spielstand geladen wird
 		if (check[choice - 1] == '0') {
-			printf("\nDieser Spielstand kann nicht ausgew\204lt werden, da keine Speicherdaten vorliegen (Spielstand ist leer)!\nBitte einen vollen Spielstand w\204hlen!\n\n");
+			printf("\n     Dieser Spielstand kann nicht ausgew\204lt werden, da keine Speicherdaten vorliegen (Spielstand ist leer)!\n     Bitte einen vollen Spielstand w\204hlen!\n\n");
+			system("PAUSE");
 			continue;
 		}
 
@@ -1085,9 +1107,12 @@ void solve() {
 		break;
 	}
 	if (solve_algorithm(arr) == 0) {
-		printf("Fehler. Rätsel kann nicht gel\224st werden");
+		system("cls");
+		printf("Fehler. R\204tsel kann nicht gel\224st werden!\n\n");
+		system("PAUSE");
 	} 
 	else {
+		system("cls");
 		printf("L\224sung:\n\n");
 		print_field(arr);
 		system("PAUSE");
@@ -1095,7 +1120,7 @@ void solve() {
 }
 
 
-
+//Lösungsalgorithmus (Brutforce)
 int solve_algorithm(char arr[10][10]) {
 
 	int complete_row[10] = { 20, 20, 20, 20 , 20, 20, 20, 20, 20, 20 }, complete_column[10] = { 20, 20, 20, 20 , 20, 20, 20, 20, 20, 20 };
@@ -1104,51 +1129,62 @@ int solve_algorithm(char arr[10][10]) {
 		complete_check(arr, &complete_row[i], &complete_column[i], i, i);
 	}
 
-	
+	print_field(arr);
 	char temp_arr[10][10];
 
+
+	//Vorabtest, ob es theoretisch Möglich ist, an jede Position ein Zeichen zu setzen
+	//Wenn es eine Stelle gibt, an der weder x noch o möglich sind, wird ein Fehler ausgegeben
+	//zusätzlich kopieren der Matrix auf temp Matrix (für weiteren Algorythmus erforderlich
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
+			if (arr[i][j] == ' ') {
+				if (rule_check(arr, NULL, NULL, j, i, 'x', complete_row, complete_column) == 0) {
+					if (rule_check(arr, NULL, NULL, j, i, 'o', complete_row, complete_column) == 0) {
+						return 0;
+					}
+				}
+				arr[i][j] = ' ';
+				for (int k = 0; k < 10; k++) {
+					if (complete_row[k] == i) complete_row[k] = 20;
+					if (complete_column[k] == j) complete_column[k] = 20;
+				}
+			}
+
 			temp_arr[i][j] = arr[i][j];
 		}
 	}
 
+	//durchgehen der Matrix
+	//Versuche x zu plazieren --> wenn nicht möglich versuche o zu plazieren --> wenn nicht möglich go_back Funktion
+	//beim erfolgreichen zurückkehren, wird von dieser Stelle aus das Füllen der Matrix vorwärts fortgesetzt
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
-			/*system("PAUSE");*/
 			system("cls");
 			print_field(arr);
 			if (arr[i][j] == ' ') {
 				if (rule_check(arr, NULL, NULL, j, i, 'x', complete_row, complete_column) == 1) continue;
 				else {
-					/*system("cls");*/
 					if (rule_check(arr, NULL, NULL, j, i, 'o', complete_row, complete_column) == 1) continue;
 					else {
-						/*system("cls");*/
 						if (go_back(arr, temp_arr, &i, &j, complete_row, complete_column) == 0) return 0;
 					}
 				}
 			}
 			else continue;
-			
+
 			system("cls");
 			print_field(arr);
-				
-
 		}
-
 	}
 	return 1;
-
 }
 
-
-
-
-
+//geht in der Matrix Schritt für Schritt über Rekursion zurück; sobald ein x gefunden wird und es möglich ist an diese Stelle ein o zu setzen, wird wieder an die Stelle gesprugen, von wo die Funktion gerufen wurde
 int go_back(char arr[10][10], char temp_arr[10][10], int* zeile, int* spalte, int* complete_row, int* complete_column) {
 
-	//if ((*zeile == 0) && (*spalte == 0) && (arr[0][0] == 'o')) return 0;
+	//wenn alle Varianten durchprobiert wurden und keine Lösung gefunden wurde, wird ein Fehler ausgegeben
+	if ((*zeile == 0) && (*spalte == 0) && (arr[0][0] == 'o')) return 0;
 	
 	if (*spalte == 0) {
 		(*zeile)--;
@@ -1166,27 +1202,16 @@ int go_back(char arr[10][10], char temp_arr[10][10], int* zeile, int* spalte, in
 		}
 	}
 
-	/*if (temp_arr[*zeile][*spalte] != ' ') go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
-	else {*/
-		if ((arr[*zeile][*spalte] == 'x') && (temp_arr[*zeile][*spalte] == ' ')) {
-			if (rule_check(arr, NULL, NULL, *spalte, *zeile, 'o', complete_row, complete_column) == 1) return 1;
-			else {
-
-				/*system("cls");*/
-				go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
-			}
-		}
+	if ((arr[*zeile][*spalte] == 'x') && (temp_arr[*zeile][*spalte] == ' ')) {
+		if (rule_check(arr, NULL, NULL, *spalte, *zeile, 'o', complete_row, complete_column) == 1) return 1;
 		else {
-			if (temp_arr[*zeile][*spalte] == ' ') arr[*zeile][*spalte] = ' ';
 			go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
-				/*}*/
-			/*}*/
 		}
-	/*}*/
-	
-	
-	
-	
+	}
+	else {
+		if (temp_arr[*zeile][*spalte] == ' ') arr[*zeile][*spalte] = ' ';
+		go_back(arr, temp_arr, zeile, spalte, complete_row, complete_column);
+	}
 }
 
 
